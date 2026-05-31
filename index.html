@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>⚡ FuelPoint — Test de Concepto</title>
 <link href="https://fonts.googleapis.com/cshs2?family=Bebas+Neue&family=Inter:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 <style>
@@ -831,12 +831,12 @@ function updateUI() {
   progressFill.style.width = pct + '%';
 
   // Indicator
-  sectionIndicator.textContent = `Sección ${currentSection + 1} de ${SECTIONS.length}`;
+  sectionIndicator.textContent = 'Sección ' + (currentSection + 1) + ' de ' + SECTIONS.length;
 
   // Nav
   btnPrev.style.visibility = currentSection === 0 ? 'hidden' : 'visible';
   btnNext.textContent = currentSection === SECTIONS.length - 1 ? 'Enviar ✓' : 'Siguiente →';
-  navStep.textContent = `${currentSection + 1} / ${SECTIONS.length}`;
+  navStep.textContent = (currentSection + 1) + ' / ' + SECTIONS.length;
 }
 
 // ============================================================
