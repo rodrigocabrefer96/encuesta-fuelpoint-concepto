@@ -1,0 +1,905 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>⚡ FuelPoint — Test de Concepto</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #08080e;
+    --surface: #0f0f1a;
+    --surface2: #151525;
+    --border: rgba(255,255,255,0.07);
+    --green: #00ff88;
+    --green-dim: rgba(0,255,136,0.12);
+    --green-glow: rgba(0,255,136,0.25);
+    --text: #e8e8f0;
+    --muted: #6b6b8a;
+    --radius: 10px;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html { scroll-behavior:smooth; }
+  body {
+    font-family:'Inter', system-ui, sans-serif;
+    background:var(--bg);
+    color:var(--text);
+    min-height:100vh;
+    min-height:100dvh;
+    overflow-x:hidden;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  /* ===== PROGRESS BAR ===== */
+  .progress-wrap {
+    position:fixed; top:0; left:0; right:0; z-index:100;
+    height:3px; background:rgba(255,255,255,0.04);
+  }
+  .progress-fill {
+    height:100%; width:0%;
+    background:linear-gradient(90deg, var(--green), #38bdf8);
+    transition:width 0.5s cubic-bezier(.4,0,.2,1);
+    box-shadow:0 0 12px var(--green-glow);
+  }
+
+  /* ===== HEADER ===== */
+  .header {
+    text-align:center;
+    padding:2.5rem 1.5rem 2rem;
+    position:relative;
+    overflow:hidden;
+  }
+  .header::before {
+    content:'';
+    position:absolute; inset:0;
+    background:radial-gradient(ellipse 70% 60% at 50% 0%, rgba(0,255,136,0.06), transparent 70%);
+    pointer-events:none;
+  }
+  .header-grid {
+    position:absolute; inset:0; pointer-events:none;
+    background-image:
+      linear-gradient(rgba(0,255,136,0.025) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,255,136,0.025) 1px, transparent 1px);
+    background-size:40px 40px;
+    mask-image:radial-gradient(ellipse 80% 70% at 50% 30%, black, transparent);
+    -webkit-mask-image:radial-gradient(ellipse 80% 70% at 50% 30%, black, transparent);
+  }
+  .brand {
+    font-family:'Bebas Neue', sans-serif;
+    font-size:2.2rem; color:var(--green);
+    letter-spacing:3px; position:relative;
+  }
+  .header-sub {
+    font-size:0.78rem; color:var(--muted);
+    margin-top:0.3rem; letter-spacing:0.5px;
+  }
+  .header-desc {
+    font-size:0.85rem; color:rgba(255,255,255,0.45);
+    margin-top:1rem; max-width:480px; margin-left:auto; margin-right:auto;
+    line-height:1.6;
+  }
+  .header-pills {
+    display:flex; gap:0.5rem; justify-content:center;
+    flex-wrap:wrap; margin-top:1rem;
+  }
+  .h-pill {
+    font-family:'Space Mono', monospace;
+    font-size:0.6rem; letter-spacing:1.5px;
+    color:var(--green); background:var(--green-dim);
+    border:1px solid rgba(0,255,136,0.18);
+    padding:0.3rem 0.7rem; border-radius:4px;
+  }
+
+  /* ===== SECTION COUNTER ===== */
+  .section-indicator {
+    text-align:center; padding:0.6rem 1.5rem;
+    font-family:'Space Mono', monospace;
+    font-size:0.65rem; color:var(--muted);
+    letter-spacing:2px; border-bottom:1px solid var(--border);
+  }
+
+  /* ===== MAIN ===== */
+  .main { max-width:600px; margin:0 auto; padding:0 1.2rem 6rem; }
+
+  /* ===== SECTIONS ===== */
+  .survey-section {
+    display:none;
+    animation:fadeUp 0.45s cubic-bezier(.4,0,.2,1);
+  }
+  .survey-section.active { display:block; }
+  @keyframes fadeUp {
+    from { opacity:0; transform:translateY(16px); }
+    to { opacity:1; transform:translateY(0); }
+  }
+
+  /* ===== QUESTION BLOCK ===== */
+  .q-block {
+    padding:1.8rem 0;
+    border-bottom:1px solid var(--border);
+  }
+  .q-block:last-child { border-bottom:none; }
+  .q-num {
+    font-family:'Space Mono', monospace;
+    font-size:0.6rem; color:var(--green);
+    letter-spacing:2px; margin-bottom:0.4rem;
+    text-transform:uppercase;
+  }
+  .q-text {
+    font-size:1rem; font-weight:600;
+    color:#fff; line-height:1.45;
+    margin-bottom:0.35rem;
+  }
+  .q-hint {
+    font-size:0.75rem; color:var(--muted);
+    margin-bottom:0.9rem; line-height:1.5;
+  }
+
+  /* ===== OPTIONS ===== */
+  .opts { display:flex; flex-direction:column; gap:0.5rem; }
+  .opt {
+    display:flex; align-items:center; gap:0.75rem;
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:var(--radius);
+    padding:0.85rem 1rem;
+    cursor:pointer;
+    transition:all 0.2s;
+    position:relative;
+    overflow:hidden;
+    -webkit-tap-highlight-color:transparent;
+  }
+  .opt::before {
+    content:'';
+    position:absolute; inset:0;
+    background:linear-gradient(135deg, rgba(0,255,136,0.06), transparent);
+    opacity:0; transition:opacity 0.2s;
+  }
+  .opt:hover { border-color:rgba(0,255,136,0.3); }
+  .opt:hover::before { opacity:1; }
+  .opt.selected {
+    border-color:var(--green);
+    background:rgba(0,255,136,0.06);
+    box-shadow:0 0 20px rgba(0,255,136,0.08);
+  }
+  .opt.selected::before { opacity:1; }
+  .opt-radio {
+    width:18px; height:18px; border-radius:50%;
+    border:2px solid rgba(255,255,255,0.15);
+    flex-shrink:0; transition:all 0.2s;
+    display:flex; align-items:center; justify-content:center;
+    position:relative;
+  }
+  .opt.selected .opt-radio {
+    border-color:var(--green);
+  }
+  .opt.selected .opt-radio::after {
+    content:'';
+    width:8px; height:8px; border-radius:50%;
+    background:var(--green);
+    box-shadow:0 0 8px var(--green-glow);
+  }
+  .opt-check {
+    width:18px; height:18px; border-radius:5px;
+    border:2px solid rgba(255,255,255,0.15);
+    flex-shrink:0; transition:all 0.2s;
+    display:flex; align-items:center; justify-content:center;
+    font-size:0.65rem; color:transparent;
+  }
+  .opt.selected .opt-check {
+    border-color:var(--green);
+    background:var(--green);
+    color:#000;
+  }
+  .opt-label {
+    font-size:0.88rem; color:rgba(255,255,255,0.8);
+    line-height:1.4; position:relative;
+  }
+  .opt.selected .opt-label { color:#fff; }
+
+  /* ===== SCALE ===== */
+  .scale-wrap {
+    display:flex; flex-direction:column; gap:0.5rem;
+  }
+  .scale-labels {
+    display:flex; justify-content:space-between;
+    font-size:0.65rem; color:var(--muted);
+    padding:0 0.2rem;
+  }
+  .scale-row {
+    display:flex; gap:0.4rem;
+  }
+  .scale-btn {
+    flex:1; aspect-ratio:1; max-width:56px;
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:var(--radius);
+    color:rgba(255,255,255,0.5);
+    font-family:'Bebas Neue'; font-size:1.3rem;
+    cursor:pointer; transition:all 0.2s;
+    display:flex; align-items:center; justify-content:center;
+    -webkit-tap-highlight-color:transparent;
+  }
+  .scale-btn:hover {
+    border-color:rgba(0,255,136,0.3);
+    color:var(--text);
+  }
+  .scale-btn.selected {
+    background:var(--green);
+    border-color:var(--green);
+    color:#000;
+    box-shadow:0 0 16px rgba(0,255,136,0.2);
+    transform:scale(1.05);
+  }
+
+  /* ===== CONCEPT REVEAL ===== */
+  .concept-card {
+    background:linear-gradient(145deg, #0d1a12 0%, #0a0f18 100%);
+    border:1px solid rgba(0,255,136,0.2);
+    border-radius:14px;
+    padding:1.8rem 1.5rem;
+    margin:1.5rem 0;
+    position:relative;
+    overflow:hidden;
+  }
+  .concept-card::before {
+    content:'';
+    position:absolute; top:-40%; right:-20%;
+    width:300px; height:300px;
+    background:radial-gradient(circle, rgba(0,255,136,0.08), transparent 60%);
+    pointer-events:none;
+  }
+  .concept-card::after {
+    content:'';
+    position:absolute; inset:0;
+    background-image:
+      linear-gradient(rgba(0,255,136,0.02) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,255,136,0.02) 1px, transparent 1px);
+    background-size:24px 24px;
+    pointer-events:none;
+  }
+  .concept-badge {
+    display:inline-block;
+    font-family:'Space Mono', monospace;
+    font-size:0.55rem; letter-spacing:2px;
+    color:var(--green); background:var(--green-dim);
+    border:1px solid rgba(0,255,136,0.2);
+    padding:0.25rem 0.6rem; border-radius:3px;
+    margin-bottom:1rem; position:relative; z-index:1;
+  }
+  .concept-title {
+    font-family:'Bebas Neue';
+    font-size:2rem; color:var(--green);
+    line-height:1; margin-bottom:0.5rem;
+    position:relative; z-index:1;
+  }
+  .concept-subtitle {
+    font-size:0.95rem; color:#fff;
+    font-weight:600; margin-bottom:0.8rem;
+    position:relative; z-index:1;
+  }
+  .concept-desc {
+    font-size:0.82rem; color:rgba(255,255,255,0.55);
+    line-height:1.65; margin-bottom:1.2rem;
+    position:relative; z-index:1;
+  }
+  .concept-features {
+    display:grid; grid-template-columns:1fr 1fr;
+    gap:0.6rem; position:relative; z-index:1;
+  }
+  @media(max-width:480px) { .concept-features { grid-template-columns:1fr; } }
+  .cf-item {
+    display:flex; align-items:flex-start; gap:0.5rem;
+    background:rgba(0,255,136,0.04);
+    border:1px solid rgba(0,255,136,0.1);
+    border-radius:8px; padding:0.65rem 0.8rem;
+  }
+  .cf-icon { font-size:1.1rem; flex-shrink:0; margin-top:0.05rem; }
+  .cf-text { font-size:0.75rem; color:rgba(255,255,255,0.7); line-height:1.45; }
+  .cf-text strong { color:var(--green); }
+
+  /* ===== TEXTAREA ===== */
+  .q-textarea {
+    width:100%;
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:var(--radius);
+    color:var(--text);
+    font-family:'Inter', sans-serif;
+    font-size:0.85rem;
+    padding:0.85rem 1rem;
+    resize:vertical;
+    min-height:80px;
+    transition:border-color 0.2s;
+    outline:none;
+  }
+  .q-textarea::placeholder { color:var(--muted); }
+  .q-textarea:focus { border-color:rgba(0,255,136,0.4); }
+
+  /* ===== NAVIGATION ===== */
+  .nav-bar {
+    position:fixed; bottom:0; left:0; right:0;
+    background:rgba(8,8,14,0.92);
+    backdrop-filter:blur(14px);
+    -webkit-backdrop-filter:blur(14px);
+    border-top:1px solid var(--border);
+    padding:0.8rem 1.2rem;
+    padding-bottom:calc(0.8rem + env(safe-area-inset-bottom));
+    z-index:90;
+    display:flex; justify-content:space-between;
+    align-items:center; gap:0.8rem;
+    max-width:600px;
+    margin:0 auto;
+  }
+  @media(min-width:601px) {
+    .nav-bar { left:50%; transform:translateX(-50%); border-radius:14px 14px 0 0; border-left:1px solid var(--border); border-right:1px solid var(--border); }
+  }
+  .btn {
+    font-family:'Inter', sans-serif;
+    font-size:0.85rem; font-weight:600;
+    padding:0.7rem 1.6rem;
+    border-radius:8px;
+    border:none; cursor:pointer;
+    transition:all 0.2s;
+    letter-spacing:0.3px;
+  }
+  .btn-ghost {
+    background:rgba(255,255,255,0.06);
+    color:var(--muted);
+    border:1px solid var(--border);
+  }
+  .btn-ghost:hover { background:rgba(255,255,255,0.1); color:var(--text); }
+  .btn-primary {
+    background:var(--green);
+    color:#000;
+    box-shadow:0 0 20px rgba(0,255,136,0.15);
+  }
+  .btn-primary:hover {
+    box-shadow:0 0 30px rgba(0,255,136,0.3);
+    transform:translateY(-1px);
+  }
+  .btn-primary:disabled {
+    opacity:0.3; cursor:not-allowed;
+    box-shadow:none; transform:none;
+  }
+  .nav-step {
+    font-family:'Space Mono', monospace;
+    font-size:0.65rem; color:var(--muted);
+    letter-spacing:1px;
+  }
+
+  /* ===== SENDING / THANK YOU ===== */
+  .screen-overlay {
+    display:none;
+    position:fixed; inset:0;
+    background:var(--bg);
+    z-index:200;
+    flex-direction:column;
+    align-items:center; justify-content:center;
+    text-align:center;
+    padding:2rem;
+    animation:fadeUp 0.4s ease;
+  }
+  .screen-overlay.active { display:flex; }
+
+  .spinner {
+    width:40px; height:40px;
+    border:3px solid rgba(255,255,255,0.06);
+    border-top-color:var(--green);
+    border-radius:50%;
+    animation:spin 0.8s linear infinite;
+    margin-bottom:1.5rem;
+  }
+  @keyframes spin { to { transform:rotate(360deg); } }
+
+  .ty-icon {
+    font-size:3rem; margin-bottom:1rem;
+    animation:popIn 0.5s cubic-bezier(.175,.885,.32,1.275);
+  }
+  @keyframes popIn {
+    from { transform:scale(0); opacity:0; }
+    to { transform:scale(1); opacity:1; }
+  }
+  .ty-title {
+    font-family:'Bebas Neue';
+    font-size:2.5rem; color:var(--green);
+    margin-bottom:0.5rem;
+  }
+  .ty-text {
+    font-size:0.88rem; color:rgba(255,255,255,0.5);
+    max-width:400px; line-height:1.6;
+  }
+
+  /* ===== FOOTER ===== */
+  .footer {
+    text-align:center;
+    padding:1rem 1.5rem 2rem;
+    font-size:0.65rem;
+    color:rgba(255,255,255,0.15);
+    border-top:1px solid var(--border);
+  }
+
+  /* ===== RESPONSIVE ===== */
+  @media(max-width:480px) {
+    .brand { font-size:1.8rem; }
+    .q-text { font-size:0.92rem; }
+    .concept-title { font-size:1.7rem; }
+    .concept-card { padding:1.4rem 1.2rem; }
+    .scale-btn { font-size:1.1rem; }
+  }
+</style>
+</head>
+<body>
+
+<!-- PROGRESS -->
+<div class="progress-wrap"><div class="progress-fill" id="progressFill"></div></div>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-grid"></div>
+  <div class="brand">⚡ FuelPoint</div>
+  <div class="header-sub">Encuesta de validación · Uruguay 2026</div>
+  <p class="header-desc">Estamos desarrollando algo nuevo para el mundo fitness en Uruguay. <strong style="color:#fff;">Tu opinión es clave</strong> para que lo hagamos bien.</p>
+  <div class="header-pills">
+    <span class="h-pill">⏱ 2 MINUTOS</span>
+    <span class="h-pill">100% ANÓNIMO</span>
+  </div>
+</div>
+
+<!-- SECTION INDICATOR -->
+<div class="section-indicator" id="sectionIndicator">Sección 1 de 4</div>
+
+<!-- MAIN -->
+<div class="main">
+
+  <!-- ==================== SECCIÓN 1: PERFIL ==================== -->
+  <div class="survey-section active" id="sec1">
+
+    <div class="q-block">
+      <div class="q-num">P1</div>
+      <div class="q-text">¿Cuántos años tenés?</div>
+      <div class="opts" data-name="p1_edad" data-type="single">
+        <div class="opt" data-val="16-20"><span class="opt-radio"></span><span class="opt-label">16–20</span></div>
+        <div class="opt" data-val="21-25"><span class="opt-radio"></span><span class="opt-label">21–25</span></div>
+        <div class="opt" data-val="26-35"><span class="opt-radio"></span><span class="opt-label">26–35</span></div>
+        <div class="opt" data-val="36-45"><span class="opt-radio"></span><span class="opt-label">36–45</span></div>
+        <div class="opt" data-val="46+"><span class="opt-radio"></span><span class="opt-label">46+</span></div>
+      </div>
+    </div>
+
+    <div class="q-block">
+      <div class="q-num">P2</div>
+      <div class="q-text">¿Con qué frecuencia vas al gimnasio?</div>
+      <div class="opts" data-name="p2_frecuencia_gym" data-type="single">
+        <div class="opt" data-val="5+"><span class="opt-radio"></span><span class="opt-label">5 o más veces por semana</span></div>
+        <div class="opt" data-val="3-4"><span class="opt-radio"></span><span class="opt-label">3–4 veces por semana</span></div>
+        <div class="opt" data-val="1-2"><span class="opt-radio"></span><span class="opt-label">1–2 veces por semana</span></div>
+        <div class="opt" data-val="ocasional"><span class="opt-radio"></span><span class="opt-label">Ocasionalmente</span></div>
+      </div>
+    </div>
+
+    <div class="q-block">
+      <div class="q-num">P3</div>
+      <div class="q-text">¿Consumís actualmente suplementos de proteína?</div>
+      <div class="opts" data-name="p3_consume_proteina" data-type="single">
+        <div class="opt" data-val="si_regular"><span class="opt-radio"></span><span class="opt-label">Sí, regularmente (3+ veces/semana)</span></div>
+        <div class="opt" data-val="si_ocasional"><span class="opt-radio"></span><span class="opt-label">Sí, ocasionalmente</span></div>
+        <div class="opt" data-val="no_pero_interesa"><span class="opt-radio"></span><span class="opt-label">No, pero me interesaría probar</span></div>
+        <div class="opt" data-val="no_no_interesa"><span class="opt-radio"></span><span class="opt-label">No, y no me interesa</span></div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ==================== SECCIÓN 2: REVEAL + INTENCIÓN ==================== -->
+  <div class="survey-section" id="sec2">
+
+    <!-- CONCEPT REVEAL -->
+    <div class="concept-card">
+      <div class="concept-badge">NUEVO CONCEPTO</div>
+      <div class="concept-title">⚡ FuelPoint</div>
+      <div class="concept-subtitle">Máquinas de protein shakes en tu gym</div>
+      <p class="concept-desc">
+        Imaginate terminar de entrenar y en <strong style="color:var(--green);">30 segundos</strong> tener un batido de proteína fresco, recién preparado, sin traer nada de tu casa. Elegís el sabor en pantalla, pagás con QR o tarjeta, y listo. Disponible 24/7, directamente en tu gimnasio.
+      </p>
+      <div class="concept-features">
+        <div class="cf-item">
+          <span class="cf-icon">⚡</span>
+          <span class="cf-text"><strong>30 seg</strong> — shake fresco listo al instante</span>
+        </div>
+        <div class="cf-item">
+          <span class="cf-icon">🥤</span>
+          <span class="cf-text"><strong>Múltiples sabores</strong> — elegís en pantalla táctil</span>
+        </div>
+        <div class="cf-item">
+          <span class="cf-icon">💳</span>
+          <span class="cf-text"><strong>Pago digital</strong> — QR, tarjeta, contactless</span>
+        </div>
+        <div class="cf-item">
+          <span class="cf-icon">🏋️</span>
+          <span class="cf-text"><strong>Dentro del gym</strong> — sin salir, sin llevar nada</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="q-block">
+      <div class="q-num">P4</div>
+      <div class="q-text">Después de leer esta propuesta, ¿qué tan probable es que uses FuelPoint?</div>
+      <div class="q-hint">1 = Nada probable · 5 = Seguro lo uso</div>
+      <div class="scale-wrap" data-name="p4_intencion_compra" data-type="scale">
+        <div class="scale-row">
+          <button class="scale-btn" data-val="1">1</button>
+          <button class="scale-btn" data-val="2">2</button>
+          <button class="scale-btn" data-val="3">3</button>
+          <button class="scale-btn" data-val="4">4</button>
+          <button class="scale-btn" data-val="5">5</button>
+        </div>
+        <div class="scale-labels">
+          <span>Nada probable</span>
+          <span>Seguro lo uso</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="q-block">
+      <div class="q-num">P5</div>
+      <div class="q-text">¿Cuánto estarías dispuesto/a a pagar por un batido de proteína recién preparado en tu gym?</div>
+      <div class="q-hint">Precio por shake individual (~300ml, 25–30g proteína)</div>
+      <div class="opts" data-name="p5_disposicion_precio" data-type="single">
+        <div class="opt" data-val="menos_150"><span class="opt-radio"></span><span class="opt-label">Menos de $150 UYU</span></div>
+        <div class="opt" data-val="150-200"><span class="opt-radio"></span><span class="opt-label">$150 – $200 UYU</span></div>
+        <div class="opt" data-val="200-250"><span class="opt-radio"></span><span class="opt-label">$200 – $250 UYU</span></div>
+        <div class="opt" data-val="250-300"><span class="opt-radio"></span><span class="opt-label">$250 – $300 UYU</span></div>
+        <div class="opt" data-val="mas_300"><span class="opt-radio"></span><span class="opt-label">Más de $300 UYU</span></div>
+        <div class="opt" data-val="no_pagaria"><span class="opt-radio"></span><span class="opt-label">No pagaría por esto</span></div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ==================== SECCIÓN 3: PREFERENCIAS ==================== -->
+  <div class="survey-section" id="sec3">
+
+    <div class="q-block">
+      <div class="q-num">P6</div>
+      <div class="q-text">¿Qué base preferirías para tu shake?</div>
+      <div class="opts" data-name="p6_base_shake" data-type="single">
+        <div class="opt" data-val="agua"><span class="opt-radio"></span><span class="opt-label">Agua — más liviano y refrescante</span></div>
+        <div class="opt" data-val="leche_polvo"><span class="opt-radio"></span><span class="opt-label">Leche en polvo — más cremoso y con más proteína</span></div>
+        <div class="opt" data-val="ambas"><span class="opt-radio"></span><span class="opt-label">Que se pueda elegir entre ambas</span></div>
+        <div class="opt" data-val="no_importa"><span class="opt-radio"></span><span class="opt-label">Me da igual</span></div>
+      </div>
+    </div>
+
+    <div class="q-block">
+      <div class="q-num">P7</div>
+      <div class="q-text">¿Qué sabores te gustaría encontrar?</div>
+      <div class="q-hint">Seleccioná hasta 3</div>
+      <div class="opts" data-name="p7_sabores" data-type="multi" data-max="3">
+        <div class="opt" data-val="chocolate"><span class="opt-check">✓</span><span class="opt-label">Chocolate</span></div>
+        <div class="opt" data-val="vainilla"><span class="opt-check">✓</span><span class="opt-label">Vainilla</span></div>
+        <div class="opt" data-val="frutilla"><span class="opt-check">✓</span><span class="opt-label">Frutilla</span></div>
+        <div class="opt" data-val="banana"><span class="opt-check">✓</span><span class="opt-label">Banana</span></div>
+        <div class="opt" data-val="dulce_leche"><span class="opt-check">✓</span><span class="opt-label">Dulce de leche</span></div>
+        <div class="opt" data-val="cookies"><span class="opt-check">✓</span><span class="opt-label">Cookies & Cream</span></div>
+        <div class="opt" data-val="sin_sabor"><span class="opt-check">✓</span><span class="opt-label">Sin sabor / neutro</span></div>
+      </div>
+    </div>
+
+    <div class="q-block">
+      <div class="q-num">P8</div>
+      <div class="q-text">¿Cómo preferirías pagar?</div>
+      <div class="opts" data-name="p8_metodo_pago" data-type="single">
+        <div class="opt" data-val="qr"><span class="opt-radio"></span><span class="opt-label">QR (MercadoPago, Prex, etc.)</span></div>
+        <div class="opt" data-val="tarjeta"><span class="opt-radio"></span><span class="opt-label">Tarjeta contactless</span></div>
+        <div class="opt" data-val="app"><span class="opt-radio"></span><span class="opt-label">App propia de FuelPoint</span></div>
+        <div class="opt" data-val="cualquiera"><span class="opt-radio"></span><span class="opt-label">Cualquier método digital está bien</span></div>
+      </div>
+    </div>
+
+    <div class="q-block">
+      <div class="q-num">P9</div>
+      <div class="q-text">¿Te interesaría un plan mensual con shakes incluidos?</div>
+      <div class="q-hint">Ej: "8 shakes por mes por $X" con descuento vs. precio unitario</div>
+      <div class="opts" data-name="p9_interes_plan" data-type="single">
+        <div class="opt" data-val="si_mucho"><span class="opt-radio"></span><span class="opt-label">Sí, mucho — prefiero un plan fijo</span></div>
+        <div class="opt" data-val="tal_vez"><span class="opt-radio"></span><span class="opt-label">Tal vez, depende del precio</span></div>
+        <div class="opt" data-val="no_prefiero_individual"><span class="opt-radio"></span><span class="opt-label">No, prefiero pagar por unidad</span></div>
+        <div class="opt" data-val="no_interesa"><span class="opt-radio"></span><span class="opt-label">No me interesa</span></div>
+      </div>
+    </div>
+
+    <div class="q-block">
+      <div class="q-num">P10</div>
+      <div class="q-text">Además de protein shakes, ¿qué otros productos te interesaría encontrar en la máquina?</div>
+      <div class="q-hint">Seleccioná todos los que te interesen</div>
+      <div class="opts" data-name="p10_otros_productos" data-type="multi" data-max="99">
+        <div class="opt" data-val="creatina"><span class="opt-check">✓</span><span class="opt-label">Creatina (en agua, lista para tomar)</span></div>
+        <div class="opt" data-val="pre_entreno"><span class="opt-check">✓</span><span class="opt-label">Pre-entreno / energizante</span></div>
+        <div class="opt" data-val="bcaa_aminoacidos"><span class="opt-check">✓</span><span class="opt-label">BCAA / aminoácidos</span></div>
+        <div class="opt" data-val="colageno"><span class="opt-check">✓</span><span class="opt-label">Colágeno</span></div>
+        <div class="opt" data-val="electrolitos"><span class="opt-check">✓</span><span class="opt-label">Bebida de electrolitos / hidratación</span></div>
+        <div class="opt" data-val="solo_proteina"><span class="opt-check">✓</span><span class="opt-label">Solo proteína está bien, no necesito más</span></div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ==================== SECCIÓN 4: VALORACIÓN ==================== -->
+  <div class="survey-section" id="sec4">
+
+    <div class="q-block">
+      <div class="q-num">P11</div>
+      <div class="q-text">Si hubiera una máquina FuelPoint en tu gym, ¿con qué frecuencia la usarías?</div>
+      <div class="opts" data-name="p11_frecuencia_uso" data-type="single">
+        <div class="opt" data-val="cada_entreno"><span class="opt-radio"></span><span class="opt-label">Cada vez que entreno</span></div>
+        <div class="opt" data-val="3-4_semana"><span class="opt-radio"></span><span class="opt-label">3–4 veces por semana</span></div>
+        <div class="opt" data-val="1-2_semana"><span class="opt-radio"></span><span class="opt-label">1–2 veces por semana</span></div>
+        <div class="opt" data-val="alguna_vez"><span class="opt-radio"></span><span class="opt-label">Alguna vez al mes</span></div>
+        <div class="opt" data-val="no_la_usaria"><span class="opt-radio"></span><span class="opt-label">No la usaría</span></div>
+      </div>
+    </div>
+
+    <div class="q-block">
+      <div class="q-num">P12</div>
+      <div class="q-text">¿Qué tan innovador te parece el concepto de FuelPoint?</div>
+      <div class="q-hint">1 = Nada innovador · 5 = Muy innovador</div>
+      <div class="scale-wrap" data-name="p12_innovacion" data-type="scale">
+        <div class="scale-row">
+          <button class="scale-btn" data-val="1">1</button>
+          <button class="scale-btn" data-val="2">2</button>
+          <button class="scale-btn" data-val="3">3</button>
+          <button class="scale-btn" data-val="4">4</button>
+          <button class="scale-btn" data-val="5">5</button>
+        </div>
+        <div class="scale-labels">
+          <span>Nada innovador</span>
+          <span>Muy innovador</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="q-block">
+      <div class="q-num">P13</div>
+      <div class="q-text">¿Qué preocupaciones o dudas te genera esta idea?</div>
+      <div class="q-hint">Seleccioná todas las que apliquen</div>
+      <div class="opts" data-name="p13_preocupaciones" data-type="multi" data-max="99">
+        <div class="opt" data-val="higiene"><span class="opt-check">✓</span><span class="opt-label">Higiene de la máquina</span></div>
+        <div class="opt" data-val="calidad_proteina"><span class="opt-check">✓</span><span class="opt-label">Calidad de la proteína utilizada</span></div>
+        <div class="opt" data-val="precio_vs_casa"><span class="opt-check">✓</span><span class="opt-label">Precio comparado con hacerlo en casa</span></div>
+        <div class="opt" data-val="frescura"><span class="opt-check">✓</span><span class="opt-label">Frescura del producto</span></div>
+        <div class="opt" data-val="sabor"><span class="opt-check">✓</span><span class="opt-label">Que no me guste el sabor</span></div>
+        <div class="opt" data-val="info_nutricional"><span class="opt-check">✓</span><span class="opt-label">Falta de información nutricional clara</span></div>
+        <div class="opt" data-val="metodo_pago"><span class="opt-check">✓</span><span class="opt-label">Métodos de pago limitados</span></div>
+        <div class="opt" data-val="ninguna"><span class="opt-check">✓</span><span class="opt-label">Ninguna preocupación</span></div>
+      </div>
+    </div>
+
+    <div class="q-block">
+      <div class="q-num">P14</div>
+      <div class="q-text">¿Recomendarías FuelPoint a alguien que entrena?</div>
+      <div class="opts" data-name="p14_recomendaria" data-type="single">
+        <div class="opt" data-val="si_seguro"><span class="opt-radio"></span><span class="opt-label">Sí, seguro</span></div>
+        <div class="opt" data-val="probablemente"><span class="opt-radio"></span><span class="opt-label">Probablemente sí</span></div>
+        <div class="opt" data-val="no_seguro"><span class="opt-radio"></span><span class="opt-label">No estoy seguro/a</span></div>
+        <div class="opt" data-val="no"><span class="opt-radio"></span><span class="opt-label">Probablemente no</span></div>
+      </div>
+    </div>
+
+    <div class="q-block">
+      <div class="q-num">P15</div>
+      <div class="q-text">¿Algo más que quieras decirnos sobre la idea?</div>
+      <div class="q-hint">Sugerencias, ideas, críticas — todo sirve (opcional)</div>
+      <textarea class="q-textarea" data-name="p15_comentarios" placeholder="Escribí acá lo que quieras..."></textarea>
+    </div>
+
+  </div>
+
+</div><!-- end main -->
+
+<!-- FOOTER -->
+<div class="footer">⚡ FuelPoint · Encuesta de Validación · Uruguay 2026 · Todas las respuestas son anónimas</div>
+
+<!-- NAV BAR -->
+<div class="nav-bar">
+  <button class="btn btn-ghost" id="btnPrev" style="visibility:hidden;">← Anterior</button>
+  <span class="nav-step" id="navStep">1 / 4</span>
+  <button class="btn btn-primary" id="btnNext">Siguiente →</button>
+</div>
+
+<!-- SENDING SCREEN -->
+<div class="screen-overlay" id="sendingScreen">
+  <div class="spinner"></div>
+  <div style="font-size:0.95rem; color:var(--muted);">Enviando respuestas...</div>
+</div>
+
+<!-- THANK YOU SCREEN -->
+<div class="screen-overlay" id="thankYouScreen">
+  <div class="ty-icon">🙌</div>
+  <div class="ty-title">¡Gracias por tu tiempo!</div>
+  <p class="ty-text">Tus respuestas fueron registradas correctamente. Nos ayudan a construir algo que realmente funcione para quienes entrenan en Uruguay.</p>
+  <div style="margin-top:2rem;">
+    <span class="h-pill">⚡ FuelPoint · Próximamente</span>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// CONFIG
+// ============================================================
+const SCRIPT_URL = https://script.google.com/macros/s/AKfycbyHWqbz-oc2ii7W6SLtmT9xseRj5smYflhrFNaVqYtIbrZxAYo2Fbl-9O4Q0Es0LLXk/exec; // ← Pegar acá la URL del Google Apps Script web app
+
+const SECTIONS = ['sec1','sec2','sec3','sec4'];
+let currentSection = 0;
+const answers = {};
+
+// Elements
+const progressFill = document.getElementById('progressFill');
+const sectionIndicator = document.getElementById('sectionIndicator');
+const btnPrev = document.getElementById('btnPrev');
+const btnNext = document.getElementById('btnNext');
+const navStep = document.getElementById('navStep');
+const sendingScreen = document.getElementById('sendingScreen');
+const thankYouScreen = document.getElementById('thankYouScreen');
+
+// ============================================================
+// INIT
+// ============================================================
+updateUI();
+
+// ============================================================
+// OPTION CLICK HANDLERS
+// ============================================================
+document.querySelectorAll('.opts[data-type="single"] .opt').forEach(opt => {
+  opt.addEventListener('click', () => {
+    const group = opt.closest('.opts');
+    group.querySelectorAll('.opt').forEach(o => o.classList.remove('selected'));
+    opt.classList.add('selected');
+    answers[group.dataset.name] = opt.dataset.val;
+  });
+});
+
+document.querySelectorAll('.opts[data-type="multi"] .opt').forEach(opt => {
+  opt.addEventListener('click', () => {
+    const group = opt.closest('.opts');
+    const max = parseInt(group.dataset.max) || 99;
+
+    // Handle "ninguna" exclusive toggle
+    if (opt.dataset.val === 'ninguna') {
+      group.querySelectorAll('.opt').forEach(o => o.classList.remove('selected'));
+      opt.classList.toggle('selected');
+    } else {
+      // Deselect "ninguna" if selecting something else
+      const ningunaOpt = group.querySelector('.opt[data-val="ninguna"]');
+      if (ningunaOpt) ningunaOpt.classList.remove('selected');
+
+      const currentSelected = group.querySelectorAll('.opt.selected:not([data-val="ninguna"])').length;
+      if (opt.classList.contains('selected')) {
+        opt.classList.remove('selected');
+      } else if (currentSelected < max) {
+        opt.classList.add('selected');
+      }
+    }
+
+    const selected = [...group.querySelectorAll('.opt.selected')].map(o => o.dataset.val);
+    answers[group.dataset.name] = selected.join(', ');
+  });
+});
+
+// Scale buttons
+document.querySelectorAll('.scale-wrap[data-type="scale"]').forEach(wrap => {
+  wrap.querySelectorAll('.scale-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      wrap.querySelectorAll('.scale-btn').forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+      answers[wrap.dataset.name] = btn.dataset.val;
+    });
+  });
+});
+
+// ============================================================
+// NAV
+// ============================================================
+btnNext.addEventListener('click', () => {
+  if (currentSection < SECTIONS.length - 1) {
+    currentSection++;
+    updateUI();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  } else {
+    submitForm();
+  }
+});
+
+btnPrev.addEventListener('click', () => {
+  if (currentSection > 0) {
+    currentSection--;
+    updateUI();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+});
+
+function updateUI() {
+  // Sections
+  SECTIONS.forEach((id, i) => {
+    const el = document.getElementById(id);
+    el.classList.toggle('active', i === currentSection);
+  });
+
+  // Progress
+  const pct = ((currentSection + 1) / SECTIONS.length) * 100;
+  progressFill.style.width = pct + '%';
+
+  // Indicator
+  sectionIndicator.textContent = `Sección ${currentSection + 1} de ${SECTIONS.length}`;
+
+  // Nav
+  btnPrev.style.visibility = currentSection === 0 ? 'hidden' : 'visible';
+  btnNext.textContent = currentSection === SECTIONS.length - 1 ? 'Enviar ✓' : 'Siguiente →';
+  navStep.textContent = `${currentSection + 1} / ${SECTIONS.length}`;
+}
+
+// ============================================================
+// COLLECT TEXTAREA
+// ============================================================
+function collectTextareas() {
+  document.querySelectorAll('.q-textarea').forEach(ta => {
+    if (ta.dataset.name && ta.value.trim()) {
+      answers[ta.dataset.name] = ta.value.trim();
+    }
+  });
+}
+
+// ============================================================
+// SUBMIT
+// ============================================================
+async function submitForm() {
+  collectTextareas();
+
+  const payload = {
+    timestamp: new Date().toISOString(),
+    p1_edad: answers.p1_edad || '',
+    p2_frecuencia_gym: answers.p2_frecuencia_gym || '',
+    p3_consume_proteina: answers.p3_consume_proteina || '',
+    p4_intencion_compra: answers.p4_intencion_compra || '',
+    p5_disposicion_precio: answers.p5_disposicion_precio || '',
+    p6_base_shake: answers.p6_base_shake || '',
+    p7_sabores: answers.p7_sabores || '',
+    p8_metodo_pago: answers.p8_metodo_pago || '',
+    p9_interes_plan: answers.p9_interes_plan || '',
+    p10_otros_productos: answers.p10_otros_productos || '',
+    p11_frecuencia_uso: answers.p11_frecuencia_uso || '',
+    p12_innovacion: answers.p12_innovacion || '',
+    p13_preocupaciones: answers.p13_preocupaciones || '',
+    p14_recomendaria: answers.p14_recomendaria || '',
+    p15_comentarios: answers.p15_comentarios || ''
+  };
+
+  console.log('📋 FuelPoint — Respuestas:', payload);
+
+  sendingScreen.classList.add('active');
+
+  if (SCRIPT_URL) {
+    try {
+      await fetch(SCRIPT_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+    } catch (err) {
+      console.error('Error enviando:', err);
+    }
+  } else {
+    console.warn('⚠️ SCRIPT_URL no configurada. Respuestas solo en console.log.');
+  }
+
+  // Simular delay mínimo para UX
+  await new Promise(r => setTimeout(r, 1200));
+
+  sendingScreen.classList.remove('active');
+  thankYouScreen.classList.add('active');
+  document.querySelector('.nav-bar').style.display = 'none';
+}
+</script>
+
+</body>
+</html>
