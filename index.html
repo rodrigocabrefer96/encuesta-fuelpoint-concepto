@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>⚡ FuelPoint — Test de Concepto</title>
-<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/cshs2?family=Bebas+Neue&family=Inter:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 <style>
   :root {
     --bg: #08080e;
@@ -147,12 +147,14 @@
     position:relative;
     overflow:hidden;
     -webkit-tap-highlight-color:transparent;
+    touch-action:manipulation;
   }
   .opt::before {
     content:'';
     position:absolute; inset:0;
     background:linear-gradient(135deg, rgba(0,255,136,0.06), transparent);
     opacity:0; transition:opacity 0.2s;
+    pointer-events:none;
   }
   .opt:hover { border-color:rgba(0,255,136,0.3); }
   .opt:hover::before { opacity:1; }
